@@ -20,7 +20,7 @@
 7.C++智能指针<br>
 8.stl里面vector和list的区别<br>
 10.排序算法的稳定性<br>
-11.malloc/free和new/delete区别<br><br>
-12.指针和引用的区别<br><br>
-13.虚函数机制<br><br>
+11.malloc/free和new/delete区别<br>
+12.指针和引用的区别<br>
+13.虚函数机制<br>
 
