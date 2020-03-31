@@ -445,7 +445,7 @@ void test()
 * reinterpret_cast：几乎什么都可以转，比如将int转指针，可能会出问题，尽量少用；
 
 ## 17.C++智能指针
-智能指针的作用是管理一个指针，因为存在以下这种情况：申请的空间在函数结束时忘记释放，造成内存泄漏。使用智能指针可以很大程度上的避免这个问题，因为智能指针就是一个类，当超出了类的作用域是，类会自动调用析构函数，析构函数会自动释放资源。所以智能指针的作用原理就是在函数结束时自动释放内存空间，不需要手动释放内存空间。
+智能指针的作用是管理一个指针，因为存在以下这种情况：申请的空间在函数结束时忘记释放，造成内存泄漏。使用智能指针可以很大程度上的避免这个问题，因为智能指针就是一个类，智能指针的类都是栈上的对象，当超出了类的作用域是，类会自动调用析构函数，析构函数会自动释放资源。所以智能指针的作用原理就是在函数结束时自动释放内存空间，不需要手动释放内存空间。
 
 * auto_ptr:C++11已弃用。
 ```cpp
@@ -468,6 +468,74 @@ pu3 = unique_ptr<string>(new string ("You"));   // #2 allowed
 
 * weak_ptr：weak_ptr 是一种不控制对象生命周期的智能指针, 它指向一个 shared_ptr 管理的对象. 进行该对象的内存管理的是那个强引用的 shared_ptr. weak_ptr只是提供了对管理对象的一个访问手段。weak_ptr 设计的目的是为配合 shared_ptr 而引入的一种智能指针来协助 shared_ptr 工作, 它只可以从一个 shared_ptr 或另一个 weak_ptr 对象构造, 它的构造和析构不会引起引用记数的增加或减少。weak_ptr是用来解决shared_ptr相互引用时的死锁问题,如果说两个shared_ptr相互引用,那么这两个指针的引用计数永远不可能下降为0,资源永远不会释放。它是对对象的一种弱引用，不会增加对象的引用计数，和shared_ptr之间可以相互转化，shared_ptr可以直接赋值给它，它可以通过调用lock函数来获得shared_ptr。
 
+### 智能指针的实现
+* shared_ptr允许拷贝和赋值，其底层实现是以"引用计数"为基础的,需要实现构造，析构，拷贝构造，=操作符重载，重载*-和>操作符
+原文链接：https://blog.csdn.net/LF_2016/java/article/details/52421909
+```cpp
+
+template<typename T>
+class SharedPtr            //采用引用计数，实现一个可以有多个指针指向同一块内存的类模板，SharedPtr是类模板，不是智能指针类型
+{
+public:
+       SharedPtr(T* ptr);
+       SharedPtr(const SharedPtr<T>& sp);
+       SharedPtr<T>& operator=(SharedPtr<T> sp);
+       T& operator*();
+       T* operator->();
+       ~SharedPtr();
+       int Count()
+       {
+              return *_pCount;
+       }
+private:
+       void Release()
+       {
+              if (--(*_pCount) == 0)
+              {
+                     delete _ptr;
+                     delete _pCount;
+                     _ptr = NULL;
+                     _pCount = NULL;
+              }
+       }
+private:
+       T* _ptr;
+       int* _pCount;             //指向引用计数的空间
+};
+template<typename T>
+SharedPtr<T>::SharedPtr(T* ptr)
+:_ptr(ptr)
+, _pCount(new int(1)){}
+template<typename T>
+SharedPtr<T>::SharedPtr(const SharedPtr<T>& sp)
+{
+       _ptr = sp._ptr;
+       _pCount= sp._pCount;
+       ++(*_pCount);
+}
+template<typename T>
+SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr<T> sp)
+{
+       std::swap(sp._ptr,_ptr);
+       std::swap(sp._pCount,_pCount);
+       return *this;
+}
+template<typename T>
+T& SharedPtr<T>::operator*()
+{
+       return *_ptr;
+}
+template<typename T>
+T* SharedPtr<T>::operator->()
+{
+       return _ptr;
+}
+template<typename T>
+SharedPtr<T>::~SharedPtr()
+{
+       Release();
+}
+```
 ## 18.C++构造析构顺序
 * 构造：1）基类构造 2）对象成员构造 3）类本身构造
 * 析构：1）类本身析构 2）对象成员析构 3）基类析构
