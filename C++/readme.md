@@ -572,3 +572,6 @@ https://blog.csdn.net/chenhanzhun/article/details/39641489<br>
 * 结构体的总大小为结构体最宽基本类型成员大小的整数倍，如有需要编译器会在最末一个成员之后加上填充字节。
 * 成员函数和静态成员在全局静态区，所以不用计算
 * 在类中虚函数会占用4个字节(虚指针)
+
+## 22.Lambda
+https://www.cnblogs.com/DswCnblog/p/5629165.html
